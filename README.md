@@ -1,0 +1,2 @@
+# grafika
+Computer Graphics Assignment
