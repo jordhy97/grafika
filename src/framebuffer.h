@@ -17,6 +17,10 @@ public:
   /* Set a pixel with specified color to the specified point in framebuffer */
   void SetPixel(const Point& position, const Color& color);
 
+  /* Draw a line with specified color from the specified start and end point
+  in the framebuffer */
+  void DrawLine(const Point& start, const Point& end, const Color& color);
+
   /* Display the framebuffer */
   void Display();
 
@@ -28,6 +32,13 @@ public:
   long GetWidth() const;
 
 private:
+  /* Draw a line with specified color from the specified start and end point
+  with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
+  void DrawLineLow(const Point& start, const Point& end, const Color& color);
+  /* Draw a line with specified color from the specified start and end point
+  with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
+  void DrawLineHigh(const Point& start, const Point& end, const Color& color);
+
   int device_;
   uint8_t *address_; /* pointer to screen memory */
   uint8_t *buffer_;

@@ -73,6 +73,100 @@ void Framebuffer::SetPixel(const Point& position, const Color& color) {
   }
 }
 
+/* Draw a line with specified color from the specified start and end point
+in the framebuffer */
+void Framebuffer::DrawLine(const Point& start, const Point& end, const Color& color) {
+	if (start.GetX() == end.GetX()) {
+		int x = start.GetX();
+		if (start.GetY() < end.GetY()) {
+			for (int y = start.GetY(); y <= end.GetY(); y++) {
+				SetPixel(Point(x, y), color);
+			}
+		} else {
+			for (int y = end.GetY(); y <= start.GetY(); y++) {
+				SetPixel(Point(x, y), color);
+			}
+		}
+	} else if (start.GetY() == end.GetY()) {
+		int y = start.GetY();
+		if (start.GetX() < end.GetX()) {
+			for (int x = start.GetX(); x <= end.GetX(); x++) {
+				SetPixel(Point(x, y), color);
+			}
+		} else {
+			for (int x = end.GetX(); x <= start.GetX(); x++) {
+				SetPixel(Point(x, y), color);
+			}
+		}
+	} else if (abs(end.GetY() - start.GetY()) < abs(end.GetX() - start.GetX())) {
+		if (start.GetX() > end.GetX()) {
+			DrawLineLow(end, start, color);
+		} else {
+			DrawLineLow(start, end, color);
+		}
+	} else {
+		if (start.GetY() > end.GetY()) {
+			DrawLineHigh(end, start, color);
+		} else {
+			DrawLineHigh(start, end, color);
+		}
+	}
+}
+
+
+/* Draw a line with specified color from the specified start and end point
+with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
+void Framebuffer::DrawLineLow(const Point& start, const Point& end, const Color& color) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int yi;
+	if (dy < 0) {
+		yi = -1;
+		dy = -dy;
+	} else {
+		yi = 1;
+	}
+
+	int p = 2 * dy - dx;
+	int y = start.GetY();
+
+	for (int x = start.GetX(); x <= end.GetX(); x++) {
+		SetPixel(Point(x, y), color);
+		if (p > 0) {
+			y += yi;
+			p -= (2 * dx);
+		}
+		p += (2 * dy);
+	}
+}
+
+/* Draw a line with specified color from the specified start and end point
+with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
+void Framebuffer::DrawLineHigh(const Point& start, const Point& end, const Color& color) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int xi;
+	if (dx < 0) {
+		xi = -1;
+		dx = -dx;
+	} else {
+		xi = 1;
+	}
+	int p = 2 * dx - dy;
+	int x = start.GetX();
+
+	for (int y = start.GetY(); y <= end.GetY(); y++) {
+		SetPixel(Point(x, y), color);
+		if (p > 0) {
+			x += xi;
+			p -= (2 * dy);
+		}
+		p += (2 * dx);
+	}
+}
+
 /* Display the framebuffer */
 void Framebuffer::Display() {
   memcpy(address_, buffer_, screen_memory_size_);
