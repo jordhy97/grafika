@@ -11,13 +11,13 @@ public:
 	static Point Translate(const Point& p1, const Point& p2);
 
 	/* Translate this point by p */
-	void Translate(const Point& p);
+	Point& Translate(const Point& p);
 
 	/* Return p scaled by scale factor with the specified pivot */
 	static Point Scale(const Point& p, const Point& pivot, double scale_factor);
 
 	/* Scale this point by scale factor with the specified pivot */
-	void Scale(const Point& pivot, double scale_factor);
+	Point& Scale(const Point& pivot, double scale_factor);
 
 	/* Getter */
 	int GetX() const;

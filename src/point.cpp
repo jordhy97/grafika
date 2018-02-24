@@ -11,9 +11,10 @@ Point Point::Translate(const Point& p1, const Point& p2) {
 }
 
 /* Translate this point by p */
-void Point::Translate(const Point& p) {
+Point& Point::Translate(const Point& p) {
   x_ = x_ + p.GetX();
   y_ = y_ + p.GetY();
+  return *this;
 }
 
 /* Return this point scaled by scale factor with the specified pivot */
@@ -23,9 +24,10 @@ Point Point::Scale(const Point& p, const Point& pivot, double scale_factor) {
 }
 
 /* Scale this point by scale factor with the specified pivot */
-void Point::Scale(const Point& pivot, double scale_factor) {
+Point& Point::Scale(const Point& pivot, double scale_factor) {
   x_ = pivot.GetX() + (x_ - pivot.GetX()) * scale_factor;
   y_ = pivot.GetY() + (y_ - pivot.GetY()) * scale_factor;
+  return *this;
 }
 
 /* Getter */
