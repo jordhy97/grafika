@@ -1,5 +1,6 @@
 #include "framebuffer.h"
 #include "input.h"
+#include "polygon.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,11 +12,11 @@ using namespace std;
 typedef pair<Point, Point> Line;
 
 #define FPS 60
-#define FONT_HEIGHT 60
-#define FONT_WIDTH 40
+#define FONT_HEIGHT 61
+#define FONT_WIDTH 43
 #define VERTICAL_SPACE 15
-#define HORIZONTAL_SPACE 7
-#define SCALE 10
+#define HORIZONTAL_SPACE 10
+#define SCALE 3
 #define ROCKET_SCALE 25
 
 struct Rocket {
@@ -59,18 +60,26 @@ int main() {
   Framebuffer fb("/dev/fb0");
 
   /* Load font */
-  vector<Line> alphabets[26];
+  vector<Polygon> alphabets[26];
   ifstream font_file;
   font_file.open("../data/font.txt");
   if (font_file.is_open()) {
     char character;
-    int line_count;
+    int polygon_count;
     for (int i = 0; i < 26; i++) {
-      font_file >> character >> line_count;
-      int x1, y1, x2, y2;
-      for (int j = 0; j < line_count; j++) {
-        font_file >> x1 >> y1 >> x2 >> y2;
-        alphabets[character - 'A'].push_back(make_pair(Point(x1, y1), Point(x2, y2)));
+      font_file >> character >> polygon_count;
+      for (int j = 0; j < polygon_count; j++) {
+        int point_count;
+        font_file >> point_count;
+        int x, y;
+        Polygon temp;
+        for (int k = 0; k < point_count; k++) {
+          font_file >> x >> y;
+           x *= SCALE;
+           y *= SCALE;
+          temp.AddPoint(Point(x, y));
+        }
+        alphabets[character - 'A'].push_back(temp);
       }
     }
     font_file.close();
@@ -112,7 +121,7 @@ int main() {
   };
 
   Color names_color[9] = {
-    COLOR_WHITE,
+    COLOR_BRONZE,
     COLOR_BLACK,
     COLOR_RED,
     COLOR_ORANGE,
@@ -148,9 +157,11 @@ int main() {
         if (names[line][i] != ' ') {
           int idx = names[line][i] - 'A';
           for (unsigned int j = 0; j < alphabets[idx].size(); j++) {
-            Point p_start = Point::Translate(Point::Scale(alphabets[idx][j].first, Point(0, 0), SCALE), Point(xoffset, yoffset));
-            Point p_end = Point::Translate(Point::Scale(alphabets[idx][j].second, Point(0, 0), SCALE), Point(xoffset, yoffset));
-            fb.DrawDottedLine(p_start, p_end, names_color[line], 3);
+            if (j == 0) {
+              fb.DrawRasteredPolygon(alphabets[idx][j], COLOR_WHITE, names_color[line], xoffset, yoffset);
+            } else {
+                fb.DrawRasteredPolygon(alphabets[idx][j], COLOR_WHITE, COLOR_BLACK, xoffset, yoffset);
+            }
           }
         }
       }
