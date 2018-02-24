@@ -1,6 +1,8 @@
 #ifndef POINT_H
 #define POINT_H
 
+ #define PI 3.14159265 
+
 class Point {
 public:
 	/* Constructor */
@@ -18,6 +20,12 @@ public:
 
 	/* Scale this point by scale factor with the specified pivot */
 	Point& Scale(const Point& pivot, double scale_factor);
+
+	/* Return p rotated by theta degree with the specified pivot */
+	static Point Rotate(const Point& p, const Point& pivot, double theta);
+
+	/* Rotate this point by thetha degree with the specified pivot */
+	Point& Rotate(const Point& pivot, double theta);
 
 	/* Getter */
 	int GetX() const;
