@@ -6,9 +6,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <cstring>
-
-#include <iostream>
-using namespace std;
+#include <algorithm>
 
 /* Constructor */
 Framebuffer::Framebuffer(const char *device_path) {
@@ -114,6 +112,59 @@ void Framebuffer::DrawLine(const Point& start, const Point& end, const Color& co
 }
 
 
+/* Draw a line with specified color from the specified start and end point
+with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
+void Framebuffer::DrawLineLow(const Point& start, const Point& end, const Color& color) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int yi;
+	if (dy < 0) {
+		yi = -1;
+		dy = -dy;
+	} else {
+		yi = 1;
+	}
+
+	int p = 2 * dy - dx;
+	int y = start.GetY();
+
+	for (int x = start.GetX(); x <= end.GetX(); x++) {
+		SetPixel(Point(x, y), color);
+		if (p > 0) {
+			y += yi;
+			p -= (2 * dx);
+		}
+		p += (2 * dy);
+	}
+}
+
+/* Draw a line with specified color from the specified start and end point
+with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
+void Framebuffer::DrawLineHigh(const Point& start, const Point& end, const Color& color) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int xi;
+	if (dx < 0) {
+		xi = -1;
+		dx = -dx;
+	} else {
+		xi = 1;
+	}
+	int p = 2 * dx - dy;
+	int x = start.GetX();
+
+	for (int y = start.GetY(); y <= end.GetY(); y++) {
+		SetPixel(Point(x, y), color);
+		if (p > 0) {
+			x += xi;
+			p -= (2 * dy);
+		}
+		p += (2 * dx);
+	}
+}
+
 /* Draw a dotted line with specified color from the specified start and end point
 in the framebuffer */
 void Framebuffer::DrawDottedLine(const Point& start, const Point& end, const Color& color, int interval) {
@@ -176,62 +227,6 @@ void Framebuffer::DrawDottedLine(const Point& start, const Point& end, const Col
 	}
 }
 
-
-/* Draw a line with specified color from the specified start and end point
-with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
-void Framebuffer::DrawLineLow(const Point& start, const Point& end, const Color& color) {
-	int dx = end.GetX() - start.GetX();
-	int dy = end.GetY() - start.GetY();
-
-	int yi;
-	if (dy < 0) {
-		yi = -1;
-		dy = -dy;
-	} else {
-		yi = 1;
-	}
-
-	int p = 2 * dy - dx;
-	int y = start.GetY();
-
-	for (int x = start.GetX(); x <= end.GetX(); x++) {
-		SetPixel(Point(x, y), color);
-		if (p > 0) {
-			y += yi;
-			p -= (2 * dx);
-		}
-		p += (2 * dy);
-	}
-}
-
-/* Draw a line with specified color from the specified start and end point
-with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
-void Framebuffer::DrawLineHigh(const Point& start, const Point& end, const Color& color) {
-	int dx = end.GetX() - start.GetX();
-	int dy = end.GetY() - start.GetY();
-
-	int xi;
-	if (dx < 0) {
-		xi = -1;
-		dx = -dx;
-	} else {
-		xi = 1;
-	}
-	int p = 2 * dx - dy;
-	int x = start.GetX();
-
-	for (int y = start.GetY(); y <= end.GetY(); y++) {
-		SetPixel(Point(x, y), color);
-		if (p > 0) {
-			x += xi;
-			p -= (2 * dy);
-		}
-		p += (2 * dx);
-	}
-}
-
-
-
 /* Draw a dotted line with specified color from the specified start and end point
 with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
 void Framebuffer::DrawDottedLineLow(const Point& start, const Point& end, const Color& color, int interval) {
@@ -289,6 +284,172 @@ void Framebuffer::DrawDottedLineHigh(const Point& start, const Point& end, const
 		if (draw) {
 			SetPixel(Point(x, y), color);
 		}
+		if (p > 0) {
+			x += xi;
+			p -= (2 * dy);
+		}
+		p += (2 * dx);
+	}
+}
+
+/* Draw a polygon to the framebuffer */
+void Framebuffer::DrawPolygon(const Polygon& polygon, const Color& color) {
+	for (int i = 0; i < polygon.GetNumOfPoints(); i++) {
+				DrawLine(polygon.GetPoint(i), polygon.GetPoint((i + 1) % polygon.GetNumOfPoints()), color);
+	}
+}
+
+/* Draw a rastered polygon to the framebuffer */
+void Framebuffer::DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color, int xoffset, int yoffset) {
+		int ymin = 1000000;
+		int ymax = 0;
+		for (int i = 0; i < polygon.GetNumOfPoints(); i++) {
+			if (polygon.GetPoint(i).GetY() + yoffset < ymin) {
+				ymin = polygon.GetPoint(i).GetY() + yoffset;
+			}
+			if (polygon.GetPoint(i).GetY() + yoffset > ymax) {
+				ymax = polygon.GetPoint(i).GetY() + yoffset;
+			}
+		}
+
+		std::vector<std::vector<int>> intersections(ymax - ymin + 1);
+
+		int prev, next;
+		for (int i = 0; i < polygon.GetNumOfPoints(); i++) {
+	    prev = i - 1;
+	    next = i + 1;
+	    if (prev < 0) {
+	      prev = polygon.GetNumOfPoints() - 1;
+	    }
+			if (next == polygon.GetNumOfPoints()) {
+	      next = 0;
+	    }
+			SetRasteredPolygonIntersections(polygon.GetPoint(i).Translate(Point(xoffset, yoffset)), polygon.GetPoint(next).Translate(Point(xoffset, yoffset)), intersections, ymin);
+
+			/* Corner points case */
+	    if ((polygon.GetPoint(i).GetY() > polygon.GetPoint(next).GetY() && polygon.GetPoint(i).GetY() < polygon.GetPoint(prev).GetY()) ||
+	        (polygon.GetPoint(i).GetY() < polygon.GetPoint(next).GetY() && polygon.GetPoint(i).GetY() > polygon.GetPoint(prev).GetY())) {
+	          intersections[polygon.GetPoint(i).GetY() + yoffset - ymin].push_back(polygon.GetPoint(i).GetX() + xoffset);
+	    }
+	    if (polygon.GetPoint(i).GetY() == polygon.GetPoint(next).GetY()) {
+	      if (polygon.GetPoint(i).GetY() < polygon.GetPoint(prev).GetY()) {
+	        intersections[polygon.GetPoint(i).GetY() + yoffset - ymin].push_back(polygon.GetPoint(i).GetX() + xoffset);
+	      }
+	      if (polygon.GetPoint(next).GetY() < polygon.GetPoint((next + 1) % polygon.GetNumOfPoints()).GetY()) {
+	        intersections[polygon.GetPoint(next).GetY() + yoffset - ymin].push_back(polygon.GetPoint(next).GetX() + xoffset);
+	      }
+	    }
+	  }
+
+		/* Sort intersection points */
+		for (int i = 1; i < (ymax - ymin); i++) {
+			std::sort(intersections[i].begin(), intersections[i].end());
+		}
+
+		/* Fill polygon */
+	  for (int i = 1; i < (ymax - ymin); i++) {
+			if (intersections[i].size() > 1) {
+				for (unsigned int j = 0; j < intersections[i].size() - 1; j += 2) {
+					for (int k = intersections[i][j] + 1; k < intersections[i][j + 1]; k++) {
+						SetPixel(Point(k, ymin + i), fill_color);
+					}
+				}
+			}
+		}
+
+		/* Draw polygon outlines */
+		for (int i = 0; i < polygon.GetNumOfPoints(); i++) {
+			next = i + 1;
+			if (next == polygon.GetNumOfPoints()) {
+				next = 0;
+			}
+			DrawLine(polygon.GetPoint(i).Translate(Point(xoffset, yoffset)), polygon.GetPoint(next).Translate(Point(xoffset, yoffset)), border_color);
+	}
+}
+
+
+/* Set the rastered polygon line intersections */
+void Framebuffer::SetRasteredPolygonIntersections(const Point& start, const Point& end, std::vector<std::vector<int>>& intersections, int ymin) {
+	if (start.GetX() == end.GetX()) {
+		int x = start.GetX();
+		if (start.GetY() < end.GetY()) {
+			for (int y = start.GetY(); y <= end.GetY(); y++) {
+				intersections[y - ymin].push_back(x);
+			}
+		} else {
+			for (int y = end.GetY(); y <= start.GetY(); y++) {
+				intersections[y - ymin].push_back(x);
+			}
+		}
+	} else if (start.GetY() == end.GetY()) {
+		int y = start.GetY();
+		if (start.GetX() < end.GetX()) {
+				intersections[y - ymin].push_back(start.GetX());
+				intersections[y - ymin].push_back(end.GetX());
+		} else {
+			intersections[y - ymin].push_back(end.GetX());
+			intersections[y - ymin].push_back(start.GetX());
+		}
+	} else if (abs(end.GetY() - start.GetY()) < abs(end.GetX() - start.GetX())) {
+		if (start.GetX() > end.GetX()) {
+			SetRasteredPolygonIntersectionsLow(end, start, intersections, ymin);
+		} else {
+			SetRasteredPolygonIntersectionsLow(start, end, intersections, ymin);
+		}
+	} else {
+		if (start.GetY() > end.GetY()) {
+			SetRasteredPolygonIntersectionsHigh(end, start, intersections, ymin);
+		} else {
+			SetRasteredPolygonIntersectionsHigh(start, end, intersections, ymin);
+		}
+	}
+}
+
+/* Set the rastered polygon line with low gradient (0 < m < 1 or -1 < m < 0)
+intersections */
+void Framebuffer::SetRasteredPolygonIntersectionsLow(const Point& start, const Point& end, std::vector<std::vector<int>>& intersections, int ymin) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int yi;
+	if (dy < 0) {
+		yi = -1;
+		dy = -dy;
+	} else {
+		yi = 1;
+	}
+
+	int p = 2 * dy - dx;
+	int y = start.GetY();
+
+	for (int x = start.GetX(); x <= end.GetX(); x++) {
+		if (p > 0) {
+			intersections[y - ymin].push_back(x);
+			y += yi;
+			p -= (2 * dx);
+		}
+		p += (2 * dy);
+	}
+}
+
+/* Set the rastered polygon line with low gradient (0 < m < 1 or -1 < m < 0)
+intersections */
+void Framebuffer::SetRasteredPolygonIntersectionsHigh(const Point& start, const Point& end, std::vector<std::vector<int>>& intersections, int ymin) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int xi;
+	if (dx < 0) {
+		xi = -1;
+		dx = -dx;
+	} else {
+		xi = 1;
+	}
+	int p = 2 * dx - dy;
+	int x = start.GetX();
+
+	for (int y = start.GetY(); y <= end.GetY(); y++) {
+		intersections[y - ymin].push_back(x);
 		if (p > 0) {
 			x += xi;
 			p -= (2 * dy);

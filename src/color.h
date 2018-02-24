@@ -13,7 +13,6 @@
 #define COLOR_CYAN (Color(0, 255, 255))
 #define COLOR_SILVER (Color(192, 192, 192))
 #define COLOR_BRONZE (Color(205, 127, 50))
-#define NO_FILL (Color(1, 1, 1))
 
 class Color {
 public:
