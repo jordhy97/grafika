@@ -4,16 +4,28 @@
 class Point {
 public:
 	/* Constructor */
-	Point() : x_(0), y_(0) {}
-	Point(int x, int y): x_(x), y_(y) {}
+	Point();
+	Point(int x, int y);
+
+	/* Returns p1 translated by p2 */
+	static Point Translate(const Point& p1, const Point& p2);
+
+	/* Translate this point by p */
+	void Translate(const Point& p);
+
+	/* Return p scaled by scale factor with the specified pivot */
+	static Point Scale(const Point& p, const Point& pivot, double scale_factor);
+
+	/* Scale this point by scale factor with the specified pivot */
+	void Scale(const Point& pivot, double scale_factor);
 
 	/* Getter */
-	int GetX() const { return x_; }
-	int GetY() const { return y_; }
+	int GetX() const;
+	int GetY() const;
 
 	/* Setter */
-	void SetX(int x) { x_ = x; }
-	void SetY(int y) { y_ = y; }
+	void SetX(int x);
+	void SetY(int y);
 
 private:
 	int x_; /* absis */
