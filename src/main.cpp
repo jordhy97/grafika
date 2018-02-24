@@ -97,7 +97,7 @@ int main() {
       rocket_file >> x1 >> y1 >> x2 >> y2;
       rocket.lines.push_back(make_pair(Point(x1, y1), Point(x2, y2)));
       rocket.lines[i].first.Scale(Point(0, 0), ROCKET_SCALE).Translate(Point(fb.GetWidth(), 0));
-      rocket  .lines[i].second.Scale(Point(0, 0), ROCKET_SCALE).Translate(Point(fb.GetWidth(), 0));
+      rocket.lines[i].second.Scale(Point(0, 0), ROCKET_SCALE).Translate(Point(fb.GetWidth(), 0));
     }
     rocket_file >> x1 >> y1 >> x2 >> y2;
     rocket.top_left = Point::Scale(Point(x1, y1), Point(0, 0), ROCKET_SCALE).Translate(Point(fb.GetWidth(), 0));

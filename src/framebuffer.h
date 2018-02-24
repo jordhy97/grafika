@@ -42,6 +42,7 @@ public:
   /* Getter */
   long GetHeight() const;
   long GetWidth() const;
+  Color GetPixelColor(const Point& position) const;
 
 private:
   /* Draw a line with specified color from the specified start and end point

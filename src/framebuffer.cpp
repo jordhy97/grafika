@@ -480,3 +480,14 @@ long Framebuffer::GetHeight() const {
 long Framebuffer::GetWidth() const {
 	return vinfo_.xres;
 }
+
+Color Framebuffer::GetPixelColor(const Point& position) const {
+	Color color(0, 0, 0);
+	if (position.GetX() >= 0 && (unsigned int) position.GetX() < vinfo_.xres && position.GetY() >= 0 && (unsigned int) position.GetY() < vinfo_.yres) {
+		long address_offset = position.GetX() * (vinfo_.bits_per_pixel/8) + position.GetY() * finfo_.line_length;
+		color.SetB(buffer_[address_offset]);
+		color.SetG(buffer_[address_offset + 1]);
+		color.SetR(buffer_[address_offset + 2]);
+	}
+	return color;
+}
