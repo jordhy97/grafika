@@ -114,6 +114,69 @@ void Framebuffer::DrawLine(const Point& start, const Point& end, const Color& co
 }
 
 
+/* Draw a dotted line with specified color from the specified start and end point
+in the framebuffer */
+void Framebuffer::DrawDottedLine(const Point& start, const Point& end, const Color& color, int interval) {
+	bool draw = false;
+
+	if (start.GetX() == end.GetX()) {
+		int x = start.GetX();
+		if (start.GetY() < end.GetY()) {
+			for (int y = start.GetY(); y <= end.GetY(); y++) {
+				if ((y - start.GetY()) % interval == 0) {
+					draw = !draw;
+				}
+				if (draw) {
+					SetPixel(Point(x, y), color);
+				}
+			}
+		} else {
+			for (int y = end.GetY(); y <= start.GetY(); y++) {
+				if ((y - end.GetY()) % interval == 0) {
+					draw = !draw;
+				}
+				if (draw) {
+					SetPixel(Point(x, y), color);
+				}
+			}
+		}
+	} else if (start.GetY() == end.GetY()) {
+		int y = start.GetY();
+		if (start.GetX() < end.GetX()) {
+			for (int x = start.GetX(); x <= end.GetX(); x++) {
+				if ((x - start.GetX()) % interval == 0) {
+					draw = !draw;
+				}
+				if (draw) {
+					SetPixel(Point(x, y), color);
+				}
+			}
+		} else {
+			for (int x = end.GetX(); x <= start.GetX(); x++) {
+				if ((x - end.GetX()) % interval == 0) {
+					draw = !draw;
+				}
+				if (draw) {
+					SetPixel(Point(x, y), color);
+				}
+			}
+		}
+	} else if (abs(end.GetY() - start.GetY()) < abs(end.GetX() - start.GetX())) {
+		if (start.GetX() > end.GetX()) {
+			DrawDottedLineLow(end, start, color, interval);
+		} else {
+			DrawDottedLineLow(start, end, color, interval);
+		}
+	} else {
+		if (start.GetY() > end.GetY()) {
+			DrawDottedLineHigh(end, start, color, interval);
+		} else {
+			DrawDottedLineHigh(start, end, color, interval);
+		}
+	}
+}
+
+
 /* Draw a line with specified color from the specified start and end point
 with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
 void Framebuffer::DrawLineLow(const Point& start, const Point& end, const Color& color) {
@@ -159,6 +222,73 @@ void Framebuffer::DrawLineHigh(const Point& start, const Point& end, const Color
 
 	for (int y = start.GetY(); y <= end.GetY(); y++) {
 		SetPixel(Point(x, y), color);
+		if (p > 0) {
+			x += xi;
+			p -= (2 * dy);
+		}
+		p += (2 * dx);
+	}
+}
+
+
+
+/* Draw a dotted line with specified color from the specified start and end point
+with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
+void Framebuffer::DrawDottedLineLow(const Point& start, const Point& end, const Color& color, int interval) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int yi;
+	if (dy < 0) {
+		yi = -1;
+		dy = -dy;
+	} else {
+		yi = 1;
+	}
+
+	int p = 2 * dy - dx;
+	int y = start.GetY();
+
+	bool draw = false;
+	for (int x = start.GetX(); x <= end.GetX(); x++) {
+		if ((x - start.GetX()) % interval == 0) {
+			draw = !draw;
+		}
+		if (draw) {
+			SetPixel(Point(x, y), color);
+		}
+		if (p > 0) {
+			y += yi;
+			p -= (2 * dx);
+		}
+		p += (2 * dy);
+	}
+}
+
+/* Draw a dotted line with specified color from the specified start and end point
+with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
+void Framebuffer::DrawDottedLineHigh(const Point& start, const Point& end, const Color& color, int interval) {
+	int dx = end.GetX() - start.GetX();
+	int dy = end.GetY() - start.GetY();
+
+	int xi;
+	if (dx < 0) {
+		xi = -1;
+		dx = -dx;
+	} else {
+		xi = 1;
+	}
+	int p = 2 * dx - dy;
+	int x = start.GetX();
+
+	bool draw = false;
+	for (int y = start.GetY(); y <= end.GetY(); y++) {
+		if ((y - start.GetY()) % interval == 0) {
+			draw = !draw;
+		}
+		if (draw) {
+			SetPixel(Point(x, y), color);
+		}
 		if (p > 0) {
 			x += xi;
 			p -= (2 * dy);

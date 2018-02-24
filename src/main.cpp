@@ -150,7 +150,7 @@ int main() {
           for (unsigned int j = 0; j < alphabets[idx].size(); j++) {
             Point p_start = Point::Translate(Point::Scale(alphabets[idx][j].first, Point(0, 0), SCALE), Point(xoffset, yoffset));
             Point p_end = Point::Translate(Point::Scale(alphabets[idx][j].second, Point(0, 0), SCALE), Point(xoffset, yoffset));
-            fb.DrawLine(p_start, p_end, names_color[line]);
+            fb.DrawDottedLine(p_start, p_end, names_color[line], 3);
           }
         }
       }

@@ -21,6 +21,10 @@ public:
   in the framebuffer */
   void DrawLine(const Point& start, const Point& end, const Color& color);
 
+  /* Draw a dotted line with specified color and interval from the specified
+  start and end point in the framebuffer */
+  void DrawDottedLine(const Point& start, const Point& end, const Color& color, int interval);
+
   /* Display the framebuffer */
   void Display();
 
@@ -35,9 +39,18 @@ private:
   /* Draw a line with specified color from the specified start and end point
   with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
   void DrawLineLow(const Point& start, const Point& end, const Color& color);
+
   /* Draw a line with specified color from the specified start and end point
   with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
   void DrawLineHigh(const Point& start, const Point& end, const Color& color);
+
+  /* Draw a dotted line with specified color from the specified start and end point
+  with low gradient (0 < m < 1 or -1 < m < 0) in the framebuffer using Bresenham algorithm */
+  void DrawDottedLineLow(const Point& start, const Point& end, const Color& color, int interval);
+
+  /* Draw a dotted line with specified color from the specified start and end point
+  with steep gradient (> 1 or < -1) in the framebuffer using Bresenham algorithm */
+  void DrawDottedLineHigh(const Point& start, const Point& end, const Color& color, int interval);
 
   int device_;
   uint8_t *address_; /* pointer to screen memory */
