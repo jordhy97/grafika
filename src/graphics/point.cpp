@@ -39,8 +39,10 @@ Point Point::Rotate(const Point& p, const Point& pivot, double theta) {
   cos_theta = std::cos(theta * PI / 180);
   sin_theta = std::sin(theta * PI / 180);
 
-  result.SetX(pivot.GetX() + (p.GetX() - pivot.GetX() * cos_theta) - (p.GetY() - pivot.GetY()) * sin_theta);
-  result.SetY(pivot.GetY() + (p.GetY() - pivot.GetY() * cos_theta) + (p.GetX() - pivot.GetX()) * sin_theta);
+  int x = pivot.GetX() + (p.GetX() - pivot.GetX()) * cos_theta - (p.GetY() - pivot.GetY()) * sin_theta;
+  int y = pivot.GetY() + (p.GetY() - pivot.GetY()) * cos_theta + (p.GetX() - pivot.GetX()) * sin_theta;
+  result.SetX(x);
+  result.SetY(y);
   return result;
 }
 
@@ -51,8 +53,11 @@ Point& Point::Rotate(const Point& pivot, double theta) {
   cos_theta = std::cos(theta * PI / 180);
   sin_theta = std::sin(theta * PI / 180);
 
-  SetX(pivot.GetX() + (x_ - pivot.GetX() * cos_theta) - (y_ - pivot.GetY()) * sin_theta);
-  SetY(pivot.GetY() + (y_ - pivot.GetY() * cos_theta) + (x_ - pivot.GetX()) * sin_theta);
+  int x = pivot.GetX() + (x_ - pivot.GetX()) * cos_theta - (y_ - pivot.GetY()) * sin_theta;
+  int y = pivot.GetY() + (y_ - pivot.GetY()) * cos_theta + (x_ - pivot.GetX()) * sin_theta;
+
+  SetX(x);
+  SetY(y);
   return *this;
 }
 
