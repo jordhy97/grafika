@@ -300,7 +300,7 @@ void Framebuffer::DrawPolygon(const Polygon& polygon, const Color& color) {
 }
 
 /* Draw a rastered polygon to the framebuffer */
-void Framebuffer::DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color, int xoffset, int yoffset) {
+void Framebuffer::DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color,  const Point& top_left, const Point& bottom_right, int xoffset, int yoffset) {
 		int ymin = 1000000;
 		int ymax = 0;
 		for (int i = 0; i < polygon.GetNumOfPoints(); i++) {
@@ -350,9 +350,7 @@ void Framebuffer::DrawRasteredPolygon(const Polygon& polygon, const Color& borde
 	  for (int i = 1; i < (ymax - ymin); i++) {
 			if (intersections[i].size() > 1) {
 				for (unsigned int j = 0; j < intersections[i].size() - 1; j += 2) {
-					for (int k = intersections[i][j] + 1; k < intersections[i][j + 1]; k++) {
-						SetPixel(Point(k, ymin + i), fill_color);
-					}
+						ClipLine(Point(intersections[i][j] + 1, ymin + i), Point(intersections[i][j + 1] - 1, ymin + i), top_left, bottom_right, fill_color);
 				}
 			}
 		}
@@ -363,7 +361,7 @@ void Framebuffer::DrawRasteredPolygon(const Polygon& polygon, const Color& borde
 			if (next == polygon.GetNumOfPoints()) {
 				next = 0;
 			}
-			DrawLine(polygon.GetPoint(i).Translate(Point(xoffset, yoffset)), polygon.GetPoint(next).Translate(Point(xoffset, yoffset)), border_color);
+			ClipLine(polygon.GetPoint(i).Translate(Point(xoffset, yoffset)), polygon.GetPoint(next).Translate(Point(xoffset, yoffset)), top_left, bottom_right, border_color);
 	}
 }
 
@@ -490,4 +488,71 @@ Color Framebuffer::GetPixelColor(const Point& position) const {
 		color.SetR(buffer_[address_offset + 2]);
 	}
 	return color;
+}
+
+/* Compute the bit code for a point (x, y) using the clip rectangle */
+int Framebuffer::ComputeOutCode(const Point& p, const Point& top_left, const Point& bottom_right) {
+	int code = INSIDE;
+
+	if (p.GetX() < top_left.GetX()) {
+		code |= LEFT;
+	} else if (p.GetX() > bottom_right.GetX()) {
+		code |= RIGHT;
+	}
+	if (p.GetY() < top_left.GetY()) {
+		code |= TOP;
+	} else if (p.GetY() > bottom_right.GetY()) {
+		code |= BOTTOM;
+	}
+
+	return code;
+}
+
+/* Cohen–Sutherland clipping algorithm clips a line from p1 = (x1, y1) to p2 = (x2, y2) against a rectangle */
+void Framebuffer::ClipLine(const Point& p1, const Point& p2, const Point& top_left, const Point& bottom_right, Color color) {
+	int outcode1 = ComputeOutCode(p1, top_left, bottom_right);
+	int outcode2 = ComputeOutCode(p2, top_left, bottom_right);
+
+	bool accept = false;
+	Point clipped_p1 = p1;
+	Point clipped_p2 = p2;
+	Point p;
+	int outcode_out;
+
+	while(true) {
+		if (!(outcode1 | outcode2)) {
+			accept = 1;
+			break;
+		} else if (outcode1 & outcode2) {
+			break;
+		} else {
+			outcode_out = outcode1 ? outcode1 : outcode2;
+
+			if (outcode_out & BOTTOM) {
+				p.SetX(clipped_p1.GetX() + (clipped_p2.GetX() - clipped_p1.GetX()) * (bottom_right.GetY() - clipped_p1.GetY()) / (clipped_p2.GetY() - clipped_p1.GetY()));
+				p.SetY(bottom_right.GetY());
+			} else if (outcode_out & TOP) {
+				p.SetX(clipped_p1.GetX() + (clipped_p2.GetX() - clipped_p1.GetX()) * (top_left.GetY() - clipped_p1.GetY()) / (clipped_p2.GetY() - clipped_p1.GetY()));
+				p.SetY(top_left.GetY());
+			} else if (outcode_out & RIGHT) {
+				p.SetY(clipped_p1.GetY() + (clipped_p2.GetY() - clipped_p1.GetY()) * (bottom_right.GetX() - clipped_p1.GetX()) / (clipped_p2.GetX() - clipped_p1.GetX()));
+				p.SetX(bottom_right.GetX());
+			} else if (outcode_out & LEFT) {
+				p.SetY(clipped_p1.GetY() + (clipped_p2.GetY() - clipped_p1.GetY()) * (top_left.GetX() - clipped_p1.GetX()) / (clipped_p2.GetX() - clipped_p1.GetX()));
+				p.SetX(top_left.GetX());
+			}
+
+			if (outcode_out == outcode1) {
+				clipped_p1 = p;
+				outcode1 = ComputeOutCode(clipped_p1, top_left, bottom_right);
+			} else {
+				clipped_p2 = p;
+				outcode2 = ComputeOutCode(clipped_p2, top_left, bottom_right);
+			}
+		}
+	}
+
+	if (accept) {
+		DrawLine(clipped_p1, clipped_p2, color);
+	}
 }

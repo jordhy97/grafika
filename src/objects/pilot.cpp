@@ -48,13 +48,13 @@ void Pilot::Scale(double scale_factor) {
 }
 
 /* Render pilot */
-void Pilot::Render(Framebuffer& fb) {
+void Pilot::Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right) {
   Move();
-  fb.DrawRasteredPolygon(pilot_, COLOR_BLACK, COLOR_BLACK, 0, 0);
+  fb.DrawRasteredPolygon(pilot_, COLOR_BLACK, COLOR_BLACK, top_left, bottom_right, 0, 0);
   if (y_speed_ > 0) {
-    fb.DrawRasteredPolygon(parachute_, COLOR_WHITE, COLOR_YELLOW, 0, 0);
+    fb.DrawRasteredPolygon(parachute_, COLOR_WHITE, COLOR_YELLOW, top_left, bottom_right, 0, 0);
     for (int i = 0 ; i < 4; i++) {
-      fb.DrawRasteredPolygon(parachute_strings_[i], COLOR_WHITE, COLOR_WHITE, 0, 0);
+      fb.DrawRasteredPolygon(parachute_strings_[i], COLOR_WHITE, COLOR_WHITE, top_left, bottom_right, 0, 0);
   }
 }
 }

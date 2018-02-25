@@ -1,7 +1,7 @@
 #ifndef PLANE_H
 #define PLANE_H
 
-#define INIT_SCALE 3
+#define INIT_SCALE 1
 #define INIT_FALL_SPEED 5
 #define INIT_FALL_LIMIT 10
 
@@ -24,7 +24,7 @@ public:
   void MoveWheels();
 
   /* Render plane */
-  void Render(Framebuffer& fb);
+  void Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right);
 
   /* Setter */
   void SetCenter(const Point& center);

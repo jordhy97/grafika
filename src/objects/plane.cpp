@@ -29,6 +29,13 @@ Plane::Plane(const char *file_path) {
       plane_file >> point_count;
       for (int j = 0; j < point_count; j++) {
         plane_file >> x >> y;
+        pilots_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
+      }
+    }
+    for (int i = 0; i < 2; i++) {
+      plane_file >> point_count;
+      for (int j = 0; j < point_count; j++) {
+        plane_file >> x >> y;
         wings_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
       }
     }
@@ -77,6 +84,9 @@ void Plane::Scale(double scale_factor) {
     mirrors_[i].Scale(center_, scale_factor);
   }
   for (int i = 0; i < 2; i++) {
+    pilots_[i].Scale(center_, scale_factor);
+  }
+  for (int i = 0; i < 2; i++) {
     wings_[i].Scale(center_, scale_factor);
   }
   for (int i = 0; i < 3; i++) {
@@ -120,25 +130,28 @@ void Plane::MoveWheels() {
 }
 
 /* Render plane */
-void Plane::Render(Framebuffer& fb) {
-  fb.DrawRasteredPolygon(body_, COLOR_RED, COLOR_RED, 0, 0);
+void Plane::Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right) {
+  fb.DrawRasteredPolygon(body_, COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
   for (int i = 0; i < 2; i++) {
-    fb.DrawRasteredPolygon(mirrors_[i], COLOR_WHITE, COLOR_WHITE, 0, 0);
+    fb.DrawRasteredPolygon(mirrors_[i], COLOR_WHITE, COLOR_WHITE, top_left, bottom_right, 0, 0);
   }
   for (int i = 0; i < 2; i++) {
-    fb.DrawRasteredPolygon(wings_[i], COLOR_RED, COLOR_RED, 0, 0);
+    fb.DrawRasteredPolygon(pilots_[i], COLOR_BLACK, COLOR_BLACK, top_left, bottom_right, 0, 0);
+  }
+  for (int i = 0; i < 2; i++) {
+    fb.DrawRasteredPolygon(wings_[i], COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
   }
   for (int i = 0; i < 3; i++) {
-    fb.DrawRasteredPolygon(tails_[i], COLOR_RED, COLOR_RED, 0, 0);
+    fb.DrawRasteredPolygon(tails_[i], COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
   }
   for (int i = 0; i < 8; i++) {
-    fb.DrawRasteredPolygon(propellers_[i], COLOR_WHITE, COLOR_WHITE, 0, 0);
+    fb.DrawRasteredPolygon(propellers_[i], COLOR_WHITE, COLOR_WHITE, top_left, bottom_right, 0, 0);
   }
   for (int i = 0; i < 3; i++) {
-    fb.DrawRasteredPolygon(wheel_connectors_[i], COLOR_RED, COLOR_RED, 0, 0);
+    fb.DrawRasteredPolygon(wheel_connectors_[i], COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
   }
   for (int i = 0; i < 3; i++) {
-    fb.DrawRasteredPolygon(wheels_[i], COLOR_WHITE, COLOR_BLACK, 0, 0);
+    fb.DrawRasteredPolygon(wheels_[i], COLOR_WHITE, COLOR_BLACK, top_left, bottom_right, 0, 0);
   }
   MoveWheels();
 }
@@ -152,6 +165,9 @@ void Plane::SetCenter(const Point& center) {
   body_.Translate(Point(xoffset, yoffset));
   for (int i = 0; i < 2; i++) {
     mirrors_[i].Translate(Point(xoffset, yoffset));
+  }
+  for (int i = 0; i < 2; i++) {
+    pilots_[i].Translate(Point(xoffset, yoffset));
   }
   for (int i = 0; i < 2; i++) {
     wings_[i].Translate(Point(xoffset, yoffset));

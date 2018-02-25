@@ -1,6 +1,12 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
+#define INSIDE 0
+#define LEFT 1
+#define RIGHT 2
+#define BOTTOM 4
+#define TOP 8
+
 #include <linux/fb.h>
 #include <stdint.h>
 #include <vector>
@@ -31,7 +37,7 @@ public:
   void DrawPolygon(const Polygon& polygon, const Color& color);
 
   /* Draw a rastered polygon to the framebuffer */
-  void DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color, int xoffset, int yoffset);
+  void DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color, const Point& top_left, const Point& bottom_right, int xoffset, int yoffset);
 
   /* Display the framebuffer */
   void Display();
@@ -71,6 +77,12 @@ private:
   /* Set the rastered polygon line with low gradient (0 < m < 1 or -1 < m < 0)
   intersections */
   void SetRasteredPolygonIntersectionsHigh(const Point& start, const Point& end, std::vector<std::vector<int>>& intersections, int ymin);
+
+  /* Compute the bit code for a point (x, y) using the clip rectangle */
+  int ComputeOutCode(const Point& p, const Point& top_left, const Point& bottom_right);
+
+  /* Cohen–Sutherland clipping algorithm clips a line from p1 = (x1, y1) to p2 = (x2, y2) against a rectangle */
+  void ClipLine(const Point& p1, const Point& p2, const Point& top_left, const Point& bottom_right, Color color);
 
   int device_;
   uint8_t *address_; /* pointer to screen memory */

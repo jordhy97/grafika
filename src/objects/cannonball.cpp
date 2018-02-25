@@ -57,9 +57,9 @@ void CannonBall::Scale(double scale_factor) {
 }
 
 /* Render cannon ball */
-void CannonBall::Render(Framebuffer& fb) {
+void CannonBall::Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right) {
   Move();
-  fb.DrawRasteredPolygon(cannon_ball_, COLOR_GRAY, COLOR_GRAY, 0, 0);
+  fb.DrawRasteredPolygon(cannon_ball_, COLOR_GRAY, COLOR_GRAY, top_left, bottom_right, 0, 0);
 }
 
 /* Setter */

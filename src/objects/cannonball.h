@@ -18,7 +18,7 @@ public:
   void Scale(double scale_factor);
 
   /* Render cannon ball */
-  void Render(Framebuffer& fb);
+  void Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right);
 
   /* Setter */
   void SetCenter(const Point& center);
