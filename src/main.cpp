@@ -99,9 +99,9 @@ int MainMenu() {
   cursor.AddPoint(Point(1, 1));
   cursor.AddPoint(Point(0, 1));
 
-  string text[4] = {"TITLE", "PLAY", "CREDITS", "EXIT"};
+  string text[4] = {"JEM AIR", "PLAY", "CREDITS", "EXIT"};
   int text_scale[4] = {3, 2, 2, 2};
-  Point text_top_left[4] = {Point(835, 160), Point(890, 740), Point(837, 800), Point(890, 860)};
+  Point text_top_left[4] = {Point(780, 160), Point(890, 740), Point(837, 800), Point(890, 860)};
   Point text_bottom_right[4] = {Point(1080, 223), Point(1025, 782), Point(1077, 842), Point(1025, 902)};
 
   Point preview_screen_top_left = Point::Translate(main_screen_top_left, Point(100, 100));
@@ -240,12 +240,12 @@ void PlayGame() {
         game_source_top_left.SetX(0);
         game_source_bottom_right.SetX(game_source_bottom_right.GetY() - game_source_top_left.GetY());
       }
-    } else if (key == 'z') { /* Zoom in */
+    } else if (key == 's') { /* Zoom in */
       if (game_source_top_left.GetX() - 5 >= 0 && game_source_top_left.GetY() - 5 > 0 && game_source_bottom_right.GetX() + 5 <= 600 && game_source_bottom_right.GetY() + 5 <= 600) {
         game_source_top_left.Translate(Point(-5, -5));
         game_source_bottom_right.Translate(Point(5, 5));
       }
-    } else if (key == 'x') { /* Zoom out */
+    } else if (key == 'w') { /* Zoom out */
       if (game_source_top_left.GetX() != game_source_bottom_right.GetX()) {
         game_source_top_left.Translate(Point(5, 5));
         game_source_bottom_right.Translate(Point(-5, -5));
