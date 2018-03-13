@@ -3,74 +3,44 @@
 #include <fstream>
 
 /* Constructor */
-Plane::Plane(const char *file_path) {
+Plane::Plane(const char *file_path, int y_speed) {
   std::ifstream plane_file;
 
   plane_file.open(file_path);
   if (plane_file.is_open()) {
     int x, y;
+
+    plane_file >> x >> y;
+    top_left_ = Point(x, y);
+
+    plane_file >> x >> y;
+    bottom_right_ = Point(x, y);
+
     plane_file >> x >> y;
     center_ = Point(x, y);
-    center_.Scale(Point(0, 0), INIT_SCALE);
-    int point_count;
-    plane_file >> point_count;
-    for (int i = 0; i < point_count; i++) {
-        plane_file >> x >> y;
-        body_.AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-    }
-    for (int i = 0; i < 2; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        mirrors_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-    }
-    for (int i = 0; i < 2; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        pilots_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-    }
-    for (int i = 0; i < 2; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        wings_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-    }
-    for (int i = 0; i < 3; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        tails_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-    }
-    for (int i = 0; i < 8; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        propellers_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-    }
-    for (int i = 0; i < 3; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        wheel_connectors_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-    }
-    for (int i = 0; i < 3; i++) {
-      plane_file >> point_count;
-      for (int j = 0; j < point_count; j++) {
-        plane_file >> x >> y;
-        wheels_[i].AddPoint(Point::Scale(Point(x, y), Point(0, 0), INIT_SCALE));
-      }
-      wheel_fall_speed_[i] = INIT_FALL_SPEED;
-      wheel_fall_limit_[i] = INIT_FALL_LIMIT;
+
+    int polygon_count;
+    plane_file >> polygon_count;
+
+    unsigned int fill_r, fill_g, fill_b, border_r, border_g, border_b;
+    plane_file >> fill_r >> fill_g >> fill_b;
+    plane_file >> border_r >> border_g >> border_b;
+
+    for (int i = 0; i < polygon_count; i++) {
+        int point_count;
+        plane_file >> point_count;
+
+        Polygon polygon;
+        for (int j = 0; j < point_count; j++) {
+          plane_file >> x >> y;
+          polygon.AddPoint(Point(x, y));
+        }
+        body_.polygons_.push_back(polygon);
+        body_.fill_colors_.push_back(Color(fill_r, fill_g, fill_b));
+        body_.border_colors_.push_back(Color(border_r, border_g, border_b));
     }
     plane_file.close();
-    hit_counter_ = 0;
+    y_speed_ = y_speed;
   } else {
     perror("Error: failed to load plane");
     exit(6);
@@ -80,80 +50,13 @@ Plane::Plane(const char *file_path) {
 /* Scale this plane */
 void Plane::Scale(double scale_factor) {
   body_.Scale(center_, scale_factor);
-  for (int i = 0; i < 2; i++) {
-    mirrors_[i].Scale(center_, scale_factor);
-  }
-  for (int i = 0; i < 2; i++) {
-    pilots_[i].Scale(center_, scale_factor);
-  }
-  for (int i = 0; i < 2; i++) {
-    wings_[i].Scale(center_, scale_factor);
-  }
-  for (int i = 0; i < 3; i++) {
-    tails_[i].Scale(center_, scale_factor);
-  }
-  for (int i = 0; i < 8; i++) {
-    propellers_[i].Scale(center_, scale_factor);
-  }
-  for (int i = 0; i < 3; i++) {
-    wheel_connectors_[i].Scale(center_, scale_factor);
-  }
-  for (int i = hit_counter_; i < 3; i++) {
-    wheels_[i].Scale(center_, scale_factor);
-  }
-}
-
-/* Rotate plane propellers */
-void Plane::RotatePropellers() {
-  for (int i = 0; i < 8; i++) {
-    propellers_[i].Rotate(propellers_[i].GetPoint(0), 45);
-  }
-}
-
-/* Move plane wheels (when shot) */
-void Plane::MoveWheels() {
-  for (int i = 0; i < hit_counter_; i++) {
-    if (wheel_fall_limit_[i] > 0) {
-      if (wheel_fall_speed_[i] == wheel_fall_limit_[i] * INIT_FALL_SPEED) {
-          wheel_fall_limit_[i]--;
-          wheel_fall_speed_[i] *= -1;
-          wheel_fall_speed_[i] += (2 * INIT_FALL_SPEED);
-      }
-      if (i == 2) {
-        wheels_[i].Translate(Point(-5, wheel_fall_speed_[i]));
-      } else {
-        wheels_[i].Translate(Point(5, wheel_fall_speed_[i]));
-      }
-      wheel_fall_speed_[i] += INIT_FALL_SPEED;
-    }
-  }
+  top_left_.Scale(center_, scale_factor);
+  bottom_right_.Scale(center_, scale_factor);
 }
 
 /* Render plane */
 void Plane::Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right) {
-  fb.DrawRasteredPolygon(body_, COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
-  for (int i = 0; i < 2; i++) {
-    fb.DrawRasteredPolygon(mirrors_[i], COLOR_WHITE, COLOR_WHITE, top_left, bottom_right, 0, 0);
-  }
-  for (int i = 0; i < 2; i++) {
-    fb.DrawRasteredPolygon(pilots_[i], COLOR_BLACK, COLOR_BLACK, top_left, bottom_right, 0, 0);
-  }
-  for (int i = 0; i < 2; i++) {
-    fb.DrawRasteredPolygon(wings_[i], COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
-  }
-  for (int i = 0; i < 3; i++) {
-    fb.DrawRasteredPolygon(tails_[i], COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
-  }
-  for (int i = 0; i < 8; i++) {
-    fb.DrawRasteredPolygon(propellers_[i], COLOR_WHITE, COLOR_WHITE, top_left, bottom_right, 0, 0);
-  }
-  for (int i = 0; i < 3; i++) {
-    fb.DrawRasteredPolygon(wheel_connectors_[i], COLOR_RED, COLOR_RED, top_left, bottom_right, 0, 0);
-  }
-  for (int i = 0; i < 3; i++) {
-    fb.DrawRasteredPolygon(wheels_[i], COLOR_WHITE, COLOR_BLACK, top_left, bottom_right, 0, 0);
-  }
-  MoveWheels();
+  fb.DrawClippedSprite(body_, top_left, bottom_right);
 }
 
 /* Setter */
@@ -163,38 +66,35 @@ void Plane::SetCenter(const Point& center) {
   center_ = center;
 
   body_.Translate(Point(xoffset, yoffset));
-  for (int i = 0; i < 2; i++) {
-    mirrors_[i].Translate(Point(xoffset, yoffset));
-  }
-  for (int i = 0; i < 2; i++) {
-    pilots_[i].Translate(Point(xoffset, yoffset));
-  }
-  for (int i = 0; i < 2; i++) {
-    wings_[i].Translate(Point(xoffset, yoffset));
-  }
-  for (int i = 0; i < 3; i++) {
-    tails_[i].Translate(Point(xoffset, yoffset));
-  }
-  for (int i = 0; i < 8; i++) {
-    propellers_[i].Translate(Point(xoffset, yoffset));
-  }
-  for (int i = 0; i < 3; i++) {
-    wheel_connectors_[i].Translate(Point(xoffset, yoffset));
-  }
-  for (int i = 0; i < 3; i++) {
-    wheels_[i].Translate(Point(xoffset, yoffset));
-  }
+  top_left_.Translate(Point(xoffset, yoffset));
+  bottom_right_.Translate(Point(xoffset, yoffset));
 }
 
-/* Increase hit counter */
-void Plane::IncHitCounter() {
-  hit_counter_++;
-  if (hit_counter_ > 3) {
-    hit_counter_ = 3;
-  }
+/* Getter */
+int Plane::GetYSpeed() const {
+  return y_speed_;
 }
 
-/* Check whether the plane is hit or not */
-bool Plane::IsHit() {
-  return hit_counter_ > 0;
+Point Plane::GetCenter() const {
+    return center_;
+}
+
+Point Plane::GetTopLeft() const {
+  return top_left_;
+}
+
+Point Plane::GetBottomRight() const {
+  return bottom_right_;
+}
+
+/* Check whether the plane collided or not */
+bool Plane::IsCollide(const Framebuffer& fb, const Color& color) {
+  for (int i = top_left_.GetY(); i <= bottom_right_.GetY(); i++) {
+    for (int j = top_left_.GetX(); j <= bottom_right_.GetX(); j++) {
+      if (Color::IsColorSame(fb.GetPixelColor(Point(j, i)), color)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }

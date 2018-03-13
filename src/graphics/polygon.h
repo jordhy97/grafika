@@ -14,13 +14,24 @@ public:
   int GetNumOfPoints() const;
 
 	/* Translate this polygon */
-	void Translate(const Point &p);
+	Polygon& Translate(const Point &p);
+
+	/* Returns polygon translated by p */
+	static Polygon Translate(const Polygon& polygon, const Point& p);
 
 	/* Rotate this polygon */
-	void Rotate(const Point &pivot, double theta);
+	Polygon& Rotate(const Point &pivot, double theta);
+
+	/* Rotate this polygon */
+	static Polygon Rotate(const Polygon& polygon, const Point &pivot, double theta);
 
 	/* Scale this polygon */
-	void Scale(const Point &pivot, double scale_factor);
+	Polygon& Scale(const Point &pivot, double scale_factor);
+	Polygon& Scale(const Point &pivot, double x_scale_factor, double y_scale_factor);
+
+	/* Returns the scaled polygon */
+	static Polygon Scale(const Polygon& polygon, const Point &pivot, double scale_factor);
+	static Polygon Scale(const Polygon& polygon, const Point &pivot, double x_scale_factor, double y_scale_factor);
 
   /* Setter */
   void AddPoint(const Point& point);

@@ -12,6 +12,7 @@
 #include <vector>
 #include "point.h"
 #include "polygon.h"
+#include "sprite.h"
 #include "color.h"
 
 class Framebuffer {
@@ -29,6 +30,12 @@ public:
   in the framebuffer */
   void DrawLine(const Point& start, const Point& end, const Color& color);
 
+  /* Draw a circle with specified color from the specified center and radius in the framebuffer using midpoint circle algorithm */
+  void DrawCircle(const Point& center, int radius, const Color& color);
+
+  /* Draw a filled circle with specified color from the specified center and radius in the framebuffer using midpoint circle algorithm */
+  void DrawFilledCircle(const Point& center, int radius, const Color& border_color, const Color& fill_color);
+
   /* Draw a dotted line with specified color and interval from the specified
   start and end point in the framebuffer */
   void DrawDottedLine(const Point& start, const Point& end, const Color& color, int interval);
@@ -37,7 +44,16 @@ public:
   void DrawPolygon(const Polygon& polygon, const Color& color);
 
   /* Draw a rastered polygon to the framebuffer */
-  void DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color, const Point& top_left, const Point& bottom_right, int xoffset, int yoffset);
+  void DrawRasteredPolygon(const Polygon& polygon, const Color& border_color, const Color& fill_color, const Point& top_left, const Point& bottom_right, int xoffset = 0, int yoffset = 0);
+
+  /* Draw a sprite to the framebuffer */
+  void DrawSprite(const Sprite& sprite, int xoffset = 0, int yoffset = 0);
+
+  /* Draw a sprite (clipped) to the framebuffer */
+  void DrawClippedSprite(const Sprite& sprite, const Point& top_left, const Point& bottom_right, int xoffset = 0, int yoffset = 0);
+
+  /* Cohen–Sutherland clipping algorithm clips a line from p1 = (x1, y1) to p2 = (x2, y2) against a rectangle */
+  void ClipLine(const Point& p1, const Point& p2, const Point& top_left, const Point& bottom_right, Color color);
 
   /* Display the framebuffer */
   void Display();
@@ -80,9 +96,6 @@ private:
 
   /* Compute the bit code for a point (x, y) using the clip rectangle */
   int ComputeOutCode(const Point& p, const Point& top_left, const Point& bottom_right);
-
-  /* Cohen–Sutherland clipping algorithm clips a line from p1 = (x1, y1) to p2 = (x2, y2) against a rectangle */
-  void ClipLine(const Point& p1, const Point& p2, const Point& top_left, const Point& bottom_right, Color color);
 
   int device_;
   uint8_t *address_; /* pointer to screen memory */

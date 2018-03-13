@@ -1,0 +1,49 @@
+#include "utils/mouse_listener.h"
+#include "utils/input.h"
+#include "graphics/point.h"
+#include "graphics/framebuffer.h"
+#include <unistd.h>
+#include <iostream>
+using namespace std;
+
+void DrawCrossHair(Framebuffer& fb, const Point& position) {
+  fb.DrawLine(Point::Translate(position, Point(0, 10)), Point::Translate(position, Point(0, 25)), COLOR_GREEN);
+  fb.DrawLine(Point::Translate(position, Point(10, 0)), Point::Translate(position, Point(25, 0)), COLOR_GREEN);
+  fb.DrawLine(Point::Translate(position, Point(-10, 0)), Point::Translate(position, Point(-25, 0)), COLOR_GREEN);
+  fb.DrawLine(Point::Translate(position, Point(0, -10)), Point::Translate(position, Point(0, -25)), COLOR_GREEN);
+}
+
+int main() {
+  Framebuffer fb("/dev/fb0");
+  vector<Point> circles_center;
+  vector<int> circles_radius;
+  MouseListener mouse_listener(Point(0, 0), Point (fb.GetWidth() - 1, fb.GetHeight() - 1), Point (fb.GetWidth() / 2 - 1, fb.GetHeight() / 2 - 1));
+  Input input;
+  int radius = 0;
+  char key;
+
+  while (1) {
+    fb.Clear();
+    /* Draw circle at the clicked position */
+    if (mouse_listener.IsLeftClicked()) {
+      circles_center.push_back(mouse_listener.GetPosition());
+      circles_radius.push_back(radius);
+    }
+    for (unsigned int i = 0; i < circles_center.size(); i++) {
+      fb.DrawFilledCircle(circles_center[i], circles_radius[i], COLOR_WHITE, COLOR_WHITE);
+    }
+    DrawCrossHair(fb, mouse_listener.GetPosition());
+    fb.Display();
+
+    key = input.GetKeyPressed();
+    if (key == 'q') {
+      break;
+    } else if (key == 'z') {
+      radius = radius == 8 ? 8 : radius + 4;
+    } else if (key == 'x') {
+      radius = radius == 0 ? 0 : radius - 4;
+    }
+  }
+
+  return 0;
+}

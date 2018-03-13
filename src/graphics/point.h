@@ -1,7 +1,7 @@
 #ifndef POINT_H
 #define POINT_H
 
- #define PI 3.14159265 
+ #define PI 3.14159265
 
 class Point {
 public:
@@ -16,10 +16,12 @@ public:
 	Point& Translate(const Point& p);
 
 	/* Return p scaled by scale factor with the specified pivot */
-	static Point Scale(const Point& p, const Point& pivot, double scale_factor);
+  static Point Scale(const Point& p, const Point& pivot, double scale_factor);
+	static Point Scale(const Point& p, const Point& pivot, double x_scale_factor, double y_scale_factor);
 
 	/* Scale this point by scale factor with the specified pivot */
-	Point& Scale(const Point& pivot, double scale_factor);
+  Point& Scale(const Point& pivot, double scale_factor);
+	Point& Scale(const Point& pivot, double x_scale_factor, double y_scale_factor);
 
 	/* Return p rotated by theta degree with the specified pivot */
 	static Point Rotate(const Point& p, const Point& pivot, double theta);

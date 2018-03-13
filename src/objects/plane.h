@@ -1,53 +1,40 @@
 #ifndef PLANE_H
 #define PLANE_H
 
-#define INIT_SCALE 1
-#define INIT_FALL_SPEED 5
-#define INIT_FALL_LIMIT 10
-
-#include "../graphics/polygon.h"
+#include "../graphics/sprite.h"
 #include "../graphics/point.h"
 #include "../graphics/framebuffer.h"
+#include "../graphics/color.h"
 
 class Plane {
 public:
 	/* Constructor */
-	Plane(const char *file_path);
+	Plane(const char *file_path, int y_speed = 0);
 
   /* Scale this plane */
   void Scale(double scale_factor);
 
-  /* Rotate plane propellers */
-  void RotatePropellers();
-
-  /* Move plane wheels (when shot) */
-  void MoveWheels();
-
   /* Render plane */
   void Render(Framebuffer& fb, const Point& top_left, const Point& bottom_right);
+
+  /* Check whether the plane collided or not */
+  bool IsCollide(const Framebuffer& fb, const Color& color);
+
+  /* Getter */
+  int GetYSpeed() const;
+	Point GetCenter() const;
+	Point GetTopLeft() const;
+	Point GetBottomRight() const;
 
   /* Setter */
   void SetCenter(const Point& center);
 
-	/* Increase hit counter */
-	void IncHitCounter();
-
-	/* Check whether the plane is hit or not */
-	bool IsHit();
-
 private:
+  Point top_left_;
+  Point bottom_right_;
 	Point center_;
-  Polygon body_;
-  Polygon mirrors_[2];
-  Polygon pilots_[2];
-  Polygon wings_[2];
-  Polygon tails_[3];
-  Polygon propellers_[8];
-  Polygon wheel_connectors_[3];
-  Polygon wheels_[3];
-  int hit_counter_;
-  int wheel_fall_speed_[3];
-  int wheel_fall_limit_[3];
+  Sprite body_;
+  int y_speed_;
 };
 
 #endif

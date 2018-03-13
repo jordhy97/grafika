@@ -556,3 +556,119 @@ void Framebuffer::ClipLine(const Point& p1, const Point& p2, const Point& top_le
 		DrawLine(clipped_p1, clipped_p2, color);
 	}
 }
+
+#include <iostream>
+
+/* Draw a circle with specified color from the specified center and radius in the framebuffer using midpoint circle algorithm */
+void Framebuffer::DrawCircle(const Point& center, int radius, const Color& color) {
+    // When radius is zero only a single
+    // point will be printed
+    if (radius > 0)
+    {
+			int x = radius, y = 0;
+
+			SetPixel(Point(x + center.GetX(), y + center.GetY()), color);
+			SetPixel(Point(-x + center.GetX(), y + center.GetY()), color);
+			SetPixel(Point(y + center.GetX(), x + center.GetY()), color);
+			SetPixel(Point(y + center.GetX(), -x + center.GetY()), color);
+
+			// Initialising the value of P
+			int P = 1 - radius;
+			while (x > y) {
+				y++;
+
+				// Mid-point is inside or on the perimeter
+				if (P <= 0) {
+					P = P + 2 * y + 1;
+				} else { // Mid-point is outside the perimeter
+					x--;
+					P = P + 2*y - 2*x + 1;
+				}
+
+				// All the perimeter points have already been printed
+				if (x < y) {
+					break;
+				}
+
+				// Printing the generated point and its reflection
+				// in the other octants after translation
+				SetPixel(Point(x + center.GetX(), y + center.GetY()), color);
+				SetPixel(Point(-x + center.GetX(), y + center.GetY()), color);
+				SetPixel(Point(x + center.GetX(), -y + center.GetY()), color);
+				SetPixel(Point(-x + center.GetX(), -y + center.GetY()), color);
+
+				// If the generated point is on the line x = y then
+				// the perimeter points have already been printed
+				if (x != y) {
+					SetPixel(Point(y + center.GetX(), x + center.GetY()), color);
+					SetPixel(Point(-y + center.GetX(), x + center.GetY()), color);
+					SetPixel(Point(y + center.GetX(), -x + center.GetY()), color);
+					SetPixel(Point(-y + center.GetX(), -x + center.GetY()), color);
+				}
+			}
+    } else {
+			SetPixel(center, color);
+		}
+}
+
+
+  /* Draw a filled circle with specified color from the specified center and radius in the framebuffer using midpoint circle algorithm */
+  void Framebuffer::DrawFilledCircle(const Point& center, int radius, const Color& border_color, const Color& fill_color) {
+		// When radius is zero only a single
+		// point will be printed
+		if (radius > 0)
+		{
+			int x = radius, y = 0;
+
+			DrawLine(Point(x + center.GetX(), y + center.GetY()), Point(-x + center.GetX(), y + center.GetY()), fill_color);
+			DrawLine(Point(y + center.GetX(), x + center.GetY()), Point(y + center.GetX(), -x + center.GetY()), fill_color);
+
+			// Initialising the value of P
+			int P = 1 - radius;
+			while (x > y) {
+				y++;
+
+				// Mid-point is inside or on the perimeter
+				if (P <= 0) {
+					P = P + 2 * y + 1;
+				} else { // Mid-point is outside the perimeter
+					x--;
+					P = P + 2*y - 2*x + 1;
+				}
+
+				// All the perimeter points have already been printed
+				if (x < y) {
+					break;
+				}
+
+				// Printing the generated point and its reflection
+				// in the other octants after translation
+				DrawLine(Point(x + center.GetX(), y + center.GetY()), Point(-x + center.GetX(), y + center.GetY()), fill_color);
+				DrawLine(Point(x + center.GetX(), -y + center.GetY()), Point(-x + center.GetX(), -y + center.GetY()), fill_color);
+
+				// If the generated point is on the line x = y then
+				// the perimeter points have already been printed
+				if (x != y) {
+					DrawLine(Point(y + center.GetX(), x + center.GetY()), Point(-y + center.GetX(), x + center.GetY()), fill_color);
+					DrawLine(Point(y + center.GetX(), -x + center.GetY()), Point(-y + center.GetX(), -x + center.GetY()), fill_color);
+				}
+			}
+		} else {
+			SetPixel(center, fill_color);
+		}
+		DrawCircle(center, radius, border_color);
+	}
+
+/* Draw a sprite to the framebuffer */
+void Framebuffer::DrawSprite(const Sprite& sprite, int xoffset, int yoffset) {
+	for (unsigned i = 0; i < sprite.polygons_.size(); i++) {
+		DrawRasteredPolygon(sprite.polygons_[i], sprite.border_colors_[i], sprite.fill_colors_[i], Point(0, 0), Point(GetWidth() - 1, GetHeight() - 1), xoffset, yoffset);
+	}
+}
+
+/* Draw a sprite (clipped) to the framebuffer */
+void Framebuffer::DrawClippedSprite(const Sprite& sprite, const Point& top_left, const Point& bottom_right, int xoffset, int yoffset) {
+	for (unsigned i = 0; i < sprite.polygons_.size(); i++) {
+		DrawRasteredPolygon(sprite.polygons_[i], sprite.border_colors_[i], sprite.fill_colors_[i], top_left, bottom_right, xoffset, yoffset);
+	}
+}

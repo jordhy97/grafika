@@ -20,6 +20,7 @@
 class Color {
 public:
   /* Constructor */
+  Color() {}
   Color(unsigned char r, unsigned g, unsigned b) : r_(r), g_(g), b_(b) {}
 
   /* Getter */
